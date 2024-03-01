@@ -105,6 +105,65 @@ void kruskala(const std::vector<std::vector<int>>& matrix, std::vector<std::vect
 
     }
 }
+
+void prim(const std::vector<std::vector<int>>& matrix, std::vector<std::vector<int>>& edges)
+{
+    std::vector<int> visited{};
+    std::vector<int> unvisited;
+    for (int i = 0; i < matrix.size(); i++)
+    {
+        unvisited.push_back(i);
+    }
+
+    visited.push_back(unvisited[0]); //заносим любую вершину в посещенную, для алгоритма не важо с какой мы начинаем
+    unvisited.erase(unvisited.begin());
+
+    while (unvisited.size() > 0)
+    {
+        std::vector<int> candidates{}; //список ребер (аогласно номерам в edges которые являются соседями для текцщих посещенных
+        for (int i = 0; i < edges.size(); i++)
+        {
+            bool usl1 = find(visited.begin(), visited.end(), edges[i][1]) == visited.end();//проверка того чтоб один конец текущего ребра был в посещенных вершинах а другой нет
+            bool usl2 = find(visited.begin(), visited.end(), edges[i][2]) == visited.end();
+            if ((usl1 == 1 and usl2 == 0) or (usl1 == 0 and usl2 == 1))
+            {
+                
+                if (find(candidates.begin(), candidates.end(), i) == candidates.end())
+                {
+                    candidates.push_back(i);
+                }
+            }
+        }
+
+        int min_rebro = 99; // выбираем минимальное ребро среди соседей
+        int min_mas = 100;
+        for (int candidate : candidates)
+        {
+            if (edges[candidate][0] < min_mas)
+            {
+                min_mas = edges[candidate][0];
+                min_rebro = candidate;
+            }
+        }
+        
+        edges[min_rebro][3] = 1;
+       
+        if (find(visited.begin(), visited.end(), edges[min_rebro][1]) == visited.end())
+        {
+            visited.push_back(edges[min_rebro][1]);
+            unvisited.erase(remove(unvisited.begin(), unvisited.end(), edges[min_rebro][1]), unvisited.end());
+            unvisited.shrink_to_fit();
+        }
+        if (find(visited.begin(), visited.end(), edges[min_rebro][2]) == visited.end())
+        {
+            visited.push_back(edges[min_rebro][2]);
+            unvisited.erase(remove(unvisited.begin(), unvisited.end(), edges[min_rebro][2]), unvisited.end());
+            unvisited.shrink_to_fit();
+        }
+
+        
+    }
+}
 int main()
 {
     //int vertex;
@@ -121,6 +180,18 @@ int main()
         if (e[i][3] == 1) { TreeMass += e[i][0]; }
     }
     std::cout << "Tree mass = " << TreeMass << std::endl;
+
+    std::vector<std::vector<int>> e2 = edgeSort(AdjacencyMatrix);
+
+    prim(AdjacencyMatrix, e2);
+    int TreeMass2 = 0;
+    for (int i = 0; i < e2.size(); i++)
+    {
+        std::cout << "Edge mass = " << e2[i][0] << "; From " << e2[i][1] << " to " << e2[i][2] << "; in tree: " << e2[i][3] << std::endl;;
+        if (e2[i][3] == 1) { TreeMass2 += e2[i][0]; }
+    }
+    std::cout << "Tree mass2 = " << TreeMass2 << std::endl;
+
 }
 
 
