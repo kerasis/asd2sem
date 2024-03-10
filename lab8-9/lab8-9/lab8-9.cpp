@@ -1,7 +1,7 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <vector>
-#include <map>
+#include <algorithm>
 
 std::vector<std::vector<int>> readMatrixFromFile(const std::string& filename) {
     std::vector<std::vector<int>> matrix;
@@ -43,7 +43,7 @@ std::vector<std::vector<int>> edgeSort(const std::vector<std::vector<int>>& matr
     {
         for (int j = 0; j < matrix.size(); j++)
         {
-            if (matrix[i][j] != 0) { edges.push_back({ matrix[i][j],i,j,0 }); } //вес. один конец. другой. посещен / не посещен
+            if (matrix[i][j] != 0) { edges.push_back({ matrix[i][j],i,j }); } //вес. один конец. другой. посещен / не посещен
         }
     }
     //сортировка
@@ -57,7 +57,7 @@ std::vector<std::vector<int>> edgeSort(const std::vector<std::vector<int>>& matr
     return edges;
 }
 
-void deikstra(std::vector<std::vector<int>>& matrix, std::vector<std::vector<int>> edges, int startV = 0)
+void deikstra(std::vector<std::vector<int>>& matrix, std::vector<std::vector<int>>& edges, int startV = 0) // только для матриц с неотрицательными весами
 {
     std::vector<int> visited{};
 
@@ -83,13 +83,10 @@ void deikstra(std::vector<std::vector<int>>& matrix, std::vector<std::vector<int
         for (std::vector<int> edge : edges)
         {
             if (edge[1] == vertexFrom and find(visited.begin(), visited.end(), edge[2]) == visited.end()) //добавить условие не помещяемости визитед 
-            {
-              
+            {             
                 if (dist[i - 1][edge[2]][0] <= (dist[i - 1][edge[1]][0] + edge[0]))
-                {
-                   
-                    dist[i][edge[2]] = dist[i - 1][edge[2]];
-                    
+                {                  
+                    dist[i][edge[2]] = dist[i - 1][edge[2]];                    
                 }
                 else
                 {
@@ -125,35 +122,70 @@ void deikstra(std::vector<std::vector<int>>& matrix, std::vector<std::vector<int
             }
         }
     }
-
+    std::cout << "deikstra " << std::endl;
     for (int i = 0; i < matrix.size(); i++)
     {
         std::cout << "Vertex: " << i << "; dist: " << dist[matrix.size() - 1][i][0] << "; put: ";
         
-        std::vector<int> pput{};
+        std::vector<int> path{};
         int ind = i;
         for (int j = matrix.size() - 1; j > -1; j--)
         {
-            pput.push_back(dist[j][ind][1]);
-            ind = dist[j][ind][1];
-            
+            path.push_back(dist[j][ind][1]);
+            ind = dist[j][ind][1];           
         }
 
-        for (int k = pput.size()-1; k >= 0; k--)
+        for (int k = path.size()-1; k >= 0; k--)
         {
-            std::cout << pput[k] << " ";
+            std::cout << path[k] << " ";
         }
         std::cout << std::endl;
     }
 }
 
+void bellmanFord(std::vector<std::vector<int>>& matrix, std::vector<std::vector<int>>& edges, int startV = 0) // работает для всех типов матриц
+{
+    std::vector<int> dist(matrix.size(), 9999);
+    std::vector<int> from(matrix.size(), -1); //массив восстановления пути
+    dist[startV] = 0;
+
+    for (int i = 0; i < matrix.size(); i++)
+    {
+        for (std::vector<int> edge : edges)
+        {
+            if (dist[edge[1]] != 9999 and (dist[edge[2]] > dist[edge[1]] + edge[0])) // сохраняем минимальные веса путей состоящие из i ребер
+            {
+                dist[edge[2]] = dist[edge[1]] + edge[0];
+                from[edge[2]] = edge[1];
+            }
+        }
+    }
+    
+    std::cout << "bellmanFord " << std::endl; //выводится на 1 элем больше тк финальный элем включен в path
+    for (int i = 0; i < matrix.size(); i++)
+    {
+        std::cout << "Vertex: " << i << "; dist: " << dist[i] << " path: ";
+        std::vector<int> path;
+        for (int v = i; v != -1; v = from[v])
+        {
+            path.push_back(v);
+        }
+        std::reverse(path.begin(), path.end());
+        for (int vert : path)
+        {
+            std::cout << vert << " ";
+        }
+        std::cout << std::endl;
+    }   
+}
+
 int main()
 {
-    //нумеркция в матрице с нуля аыаывывывмывм
     std::vector<std::vector<int>> adjMatr = readMatrixFromFile("matrix.txt");
     printMatrix(adjMatr);
 
     std::vector<std::vector<int>> edges = edgeSort(adjMatr);
     deikstra(adjMatr, edges,6);
+    bellmanFord(adjMatr, edges,6);
 }
 
