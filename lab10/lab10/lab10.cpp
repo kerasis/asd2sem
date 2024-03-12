@@ -49,10 +49,10 @@ public:
         }
     }
     
-    void dfs(int v, int from, bool& hasCycle)
+    void dfs(int v, int from, bool& hasCycle, std::vector<int>& path)
     {
         visited.find(v)->second = 1;
-
+        path.push_back(v);// сохраняем путь по которому двигался дфс
         for (int i = 0; i < (adjacency_list.find(v)->second).size(); i++)
         {
             if (from == adjacency_list[v][i]) // запрещаем ходить в обратном направлении ( для этого в параметрах функции так же передаем последний элемент из которого запускался текущий рекурсионный слой)
@@ -61,19 +61,21 @@ public:
             }
             else if (visited.find(adjacency_list[v][i])->second == 0)
             {
-                dfs(adjacency_list[v][i], v, hasCycle);
+                dfs(adjacency_list[v][i], v, hasCycle, path);               
             }
             else if (visited.find(adjacency_list[v][i])->second == 1)
             {
                 hasCycle = true;
             }
         }
+  
         visited.find(v)->second = 2;
     }
 
     bool eylerCycle()
     {
         bool hasCycle = false;
+        std::vector<int> path{};
         for (auto vert : adjacency_list)
         {
             if (vert.second.size() % 2 == 1) { return false; }
@@ -88,9 +90,20 @@ public:
             if (iter->second == 0)
             {
                 
-                dfs( iter->first, -1, hasCycle);
+                dfs( iter->first, -1, hasCycle, path);
             }
         }
+
+        if (hasCycle == true)
+        {
+            std::cout << "path: ";
+            for (int i = 0; i < path.size(); i++)
+            {
+                std::cout << path[i] << " ";
+            }
+            std::cout << std::endl;
+        }
+
         return hasCycle;
 
     }
